@@ -1,12 +1,13 @@
 {
   "name": "commitgpt",
-  "version": "1.0.5",
+  "version": "1.0.27",
   "description": "",
   "main": "dist/index.js",
   "type": "module",
   "bin": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "autoversion": "ts-node --esm src/scripts/autoversion.ts",
+    "build": "npm run autoversion && tsc",
     "start": "ts-node --esm src/index.ts",
     "prepublishOnly": "npm run build"
   },
@@ -33,6 +34,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@types/yargs-parser": "^21.0.0",
     "ts-node": "^10.9.1"
   }
 }
