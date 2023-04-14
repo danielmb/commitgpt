@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./dist/",
+    "sourceMap": true,
+    "rootDir": "./src",
     "module": "ESNext",
     "moduleResolution": "node",
     "esModuleInterop": true
