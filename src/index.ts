@@ -15,7 +15,9 @@ const spinner = ora();
 const argv = parseArgs(process.argv.slice(2));
 
 const conventionalCommit = argv.conventional || argv.c;
-const CONVENTIONAL_REQUEST = conventionalCommit ? `following conventional commit (<type>: <subject>)` : '';
+const CONVENTIONAL_REQUEST = conventionalCommit
+  ? `following conventional commit (<type>: <subject>)`
+  : '';
 
 let diff = '';
 try {
@@ -33,7 +35,7 @@ run(diff)
   .then(() => {
     process.exit(0);
   })
-  .catch(e => {
+  .catch((e) => {
     console.log('Error: ' + e.message);
     if ((e as any).details) {
       console.log((e as any).details);
@@ -43,11 +45,11 @@ run(diff)
 
 async function run(diff: string) {
   const api = new ChatGPTClient({
-    sessionToken: await ensureSessionToken(),
+    APIKey: await ensureSessionToken(),
   });
 
   spinner.start('Authorizing with OpenAI...');
-  await api.ensureAuth();
+  await api.authorize();
   spinner.stop();
 
   const firstRequest =
@@ -65,7 +67,7 @@ async function run(diff: string) {
       api,
       firstRequestSent
         ? `Suggest a few more commit messages for my changes (without explanations) ${CONVENTIONAL_REQUEST}`
-        : firstRequest
+        : firstRequest,
     );
 
     try {
@@ -84,7 +86,9 @@ async function run(diff: string) {
       } else if (answer.message === MORE_OPTION) {
         continue;
       } else {
-        execSync(`git commit -m '${escapeCommitMessage(answer.message)}'`, { stdio: 'inherit' });
+        execSync(`git commit -m '${escapeCommitMessage(answer.message)}'`, {
+          stdio: 'inherit',
+        });
         return;
       }
     } catch (e) {
@@ -104,7 +108,7 @@ async function getMessages(api: ChatGPTClient, request: string) {
 
     const messages = response
       .split('\n')
-      .filter(line => line.match(/^(\d+\.|-|\*)\s+/))
+      .filter((line) => line.match(/^(\d+\.|-|\*)\s+/))
       .map(normalizeMessage);
 
     spinner.stop();
