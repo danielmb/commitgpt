@@ -35,7 +35,7 @@ export async function ensureSessionToken(clean?: boolean): Promise<string> {
 async function promptToken() {
   try {
     console.log(
-      'Follow instructions here to get your OpenAI API key token: https://github.com/RomanHotsiy/commitgpt#get-your-session-token',
+      'Follow instructions here to get your x OpenAI API key token: https://github.com/RomanHotsiy/commitgpt#get-your-session-token',
     );
 
     const answer = await enquirer.prompt<{ APIKey: string }>({
