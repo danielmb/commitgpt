@@ -1,9 +1,4 @@
-// Adapted from: https://github.com/wong2/chat-gpt-google-extension/blob/main/background/index.mjs
-
-import { createParser } from 'eventsource-parser';
 import { v4 as uuidv4 } from 'uuid';
-import ExpiryMap from 'expiry-map';
-import fetch, { Response } from 'node-fetch';
 import { z } from 'zod';
 import { OpenAIApi, Configuration } from 'openai';
 export const ClientConfigSchema = z.object({
@@ -11,14 +6,7 @@ export const ClientConfigSchema = z.object({
 });
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;
 
-export const testAuth = async (APIKey: string) => {
-  console.log('Testing auth...');
-  const configuration = new Configuration({
-    apiKey: APIKey,
-  });
-  const openai = new OpenAIApi(configuration);
-  await openai.retrieveModel('gpt-3.5-turbo');
-};
+export const testAuth = async (APIKey: string) => {};
 
 export class ChatGPTClient {
   constructor(
@@ -34,7 +22,6 @@ export class ChatGPTClient {
       apiKey: APIKey,
     });
     const openai = new OpenAIApi(configuration);
-
     const res = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
       messages: [
