@@ -146,15 +146,10 @@ async function getMessages(api: ChatGPTClient, request: string) {
   // send a message and wait for the response
   try {
     const response = await api.getAnswer(request);
-    console.log('response: ', response);
     const messages = response
       .split('\n')
       .filter((line) => line.match(/^(\d+\.|-|\*)\s+/))
       .map(normalizeMessage);
-    console.log(
-      'messages: ',
-      response.split('\n').filter((line) => line.match(/^(\d+\.|-|\*)\s+/)),
-    );
     spinner.stop();
 
     messages.push(CUSTOM_MESSAGE_OPTION, MORE_OPTION);
