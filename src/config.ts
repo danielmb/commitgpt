@@ -1,7 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import enquirer from 'enquirer';
-import { z } from 'zod';
 import { ClientConfig, ClientConfigSchema, testAuth } from './client.js';
 
 const CONFIG_FILE_NAME = `${homedir()}/.commit-gpt.json`;
@@ -18,7 +17,6 @@ export async function ensureSessionToken(clean?: boolean): Promise<string> {
   if (!config.APIKey) {
     config.APIKey = await promptToken();
   }
-
   while (true) {
     try {
       await testAuth(config.APIKey);
