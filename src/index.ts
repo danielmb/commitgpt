@@ -131,6 +131,7 @@ async function run(diff: string) {
           '-m',
           escapeCommitMessage(answer.message),
         ]);
+        return;
       }
     } catch (e) {
       console.log('Aborted.');
