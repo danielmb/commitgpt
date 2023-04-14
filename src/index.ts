@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 
 import enquirer from 'enquirer';
 import ora from 'ora';
 import parseArgs from 'yargs-parser';
+
+import { z } from 'zod';
 
 import { ChatGPTClient } from './client.js';
 import { ensureSessionToken } from './config.js';
@@ -16,8 +18,45 @@ const argv = parseArgs(process.argv.slice(2));
 
 const conventionalCommit = argv.conventional || argv.c;
 const CONVENTIONAL_REQUEST = conventionalCommit
-  ? `following conventional commit (<type>: <subject>)`
+  ? `Use following conventional commit (<type>: <subject>).\n`
   : '';
+
+const exec = async (command: string, args: string[]): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      stdio: 'inherit',
+    });
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject();
+      }
+    });
+  });
+};
+const style = argv.style || argv.s;
+let CUSTOM_STYLE: string = '';
+if (style) {
+  try {
+    let parsed = z.string().optional().parse(style);
+    if (parsed) {
+      CUSTOM_STYLE = `in the style of ${parsed}`;
+    }
+  } catch (e) {
+    console.log('Invalid prompt: ' + e.message);
+    process.exit(1);
+  }
+}
+let CUSTOM_PROMPT: string = '';
+if (argv.prompt || argv.p) {
+  try {
+    CUSTOM_PROMPT = z.string().parse(argv.prompt || argv.p);
+  } catch (e) {
+    console.log('Invalid prompt: ' + e.message);
+    process.exit(1);
+  }
+}
 
 let diff = '';
 try {
@@ -49,24 +88,25 @@ async function run(diff: string) {
   });
 
   spinner.start('Authorizing with OpenAI...');
-  await api.authorize();
   spinner.stop();
 
   const firstRequest =
-    `Suggest me a few good commit messages for my commit ${CONVENTIONAL_REQUEST}.\n` +
+    (CUSTOM_PROMPT
+      ? CUSTOM_PROMPT
+      : `Suggest me a few good commit messages for my commit ${CUSTOM_STYLE}.\n`) +
+    CONVENTIONAL_REQUEST +
     '```\n' +
     diff +
     '\n' +
     '```\n\n' +
     `Output results as a list, not more than 6 items.`;
-
   let firstRequestSent = false;
 
   while (true) {
     const choices = await getMessages(
       api,
       firstRequestSent
-        ? `Suggest a few more commit messages for my changes (without explanations) ${CONVENTIONAL_REQUEST}`
+        ? `Suggest a few more commit messages for my changes (without explanations)\n${CONVENTIONAL_REQUEST}`
         : firstRequest,
     );
 
@@ -86,10 +126,11 @@ async function run(diff: string) {
       } else if (answer.message === MORE_OPTION) {
         continue;
       } else {
-        execSync(`git commit -m '${escapeCommitMessage(answer.message)}'`, {
-          stdio: 'inherit',
-        });
-        return;
+        await exec('git', [
+          'commit',
+          '-m',
+          escapeCommitMessage(answer.message),
+        ]);
       }
     } catch (e) {
       console.log('Aborted.');
@@ -105,12 +146,15 @@ async function getMessages(api: ChatGPTClient, request: string) {
   // send a message and wait for the response
   try {
     const response = await api.getAnswer(request);
-
+    console.log('response: ', response);
     const messages = response
       .split('\n')
       .filter((line) => line.match(/^(\d+\.|-|\*)\s+/))
       .map(normalizeMessage);
-
+    console.log(
+      'messages: ',
+      response.split('\n').filter((line) => line.match(/^(\d+\.|-|\*)\s+/)),
+    );
     spinner.stop();
 
     messages.push(CUSTOM_MESSAGE_OPTION, MORE_OPTION);
