@@ -13,17 +13,14 @@ export async function ensureSessionToken(clean?: boolean): Promise<string> {
       JSON.parse(readFileSync(CONFIG_FILE_NAME, 'utf-8')),
     );
   }
-
   if (!config.APIKey) {
     config.APIKey = await promptToken();
   }
   while (true) {
     try {
-      await testAuth(config.APIKey);
       writeFileSync(CONFIG_FILE_NAME, JSON.stringify(config, null, 2));
       return config.APIKey;
     } catch (e) {
-      console.log(e.message);
       console.log('Invalid token. Please try again.');
       config.APIKey = await promptToken();
     }
@@ -38,10 +35,10 @@ async function promptToken() {
 
     const answer = await enquirer.prompt<{ APIKey: string }>({
       type: 'password',
-      name: 'API Key',
+      name: 'APIKey',
       message: 'Paste your API key here:',
     });
-
+    console.log(answer);
     return answer.APIKey;
   } catch (e) {
     console.log('Aborted.');
