@@ -106,7 +106,8 @@ async function run(diff: string) {
     const choices = await getMessages(
       api,
       firstRequestSent
-        ? `Suggest a few more commit messages for my changes (without explanations)\n${CONVENTIONAL_REQUEST}`
+        ? `Suggest a few more commit messages for my changes (without explanations)\n` +
+            CONVENTIONAL_REQUEST
         : firstRequest,
     );
 
