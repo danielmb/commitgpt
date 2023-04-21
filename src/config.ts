@@ -38,7 +38,6 @@ async function promptToken() {
       name: 'APIKey',
       message: 'Paste your API key here:',
     });
-    console.log(answer);
     return answer.APIKey;
   } catch (e) {
     console.log('Aborted.');
